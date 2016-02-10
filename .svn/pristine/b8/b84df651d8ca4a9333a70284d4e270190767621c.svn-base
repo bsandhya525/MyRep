@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project name="Junit_DataDriven" default=""  basedir=".">
+	
+	<property name="Environment" value="env" />
+	<property name="ws.home" value="${basedir}" />
+	<property name="ws.jars" value="${user.home}/.m2/repository/" />
+	<property name="test.dest" value="${basedir}/build" />
+	<property name="test.src" value="${basedir}/src" />
+	<property name="test.reportsDir" value="${basedir}/rep" />
+	
+	
+	<path id="testcase.path">
+	
+		<pathelement location="${test.dest}" />
+		
+		<fileset dir="${ws.jars}">
+			<include name="**/*.jar" />
+			<exclude name="**/google-collections-1.0.jar"/>
+		</fileset>
+	
+	</path>
+
+    <target name="setClassPath" unless="test.classpath">
+       	<path id="classpath_jars">
+    		<fileset dir="${ws.jars}">
+    			<include name="**/*.jar" />
+    			<exclude name="**/google-collections-1.0.jar"/>
+    		</fileset>
+       	</path>
+       	<pathconvert pathsep=":" property="test.classpath"  refid="classpath_jars" />
+    </target>
+
+	<target name="init" depends="setClassPath">
+		<!--<tstamp>
+			<format property="start.time" pattern="MM/dd/yyyy hh:mm aa" />
+		</tstamp>-->
+		<condition property="ANT"
+		           value="${env.ANT_HOME}/bin/ant.bat"
+		           else="${env.ANT_HOME}/bin/ant">
+		                 <os family="windows" />           
+		</condition>
+	
+	</target>
+	
+	<target name="build" depends="init"></target>
+	
+	<target name="clean">
+		<delete dir="${test.dest}" />
+	</target>
+	
+	<target name="compile" depends="init,clean">
+		<delete includeemptydirs="true" quiet="true">
+			<fileset dir="${test.dest}" includes="**/*" />
+		</delete>
+		
+		<echo message="making directory..." />
+		<mkdir dir="${test.dest}" />
+		<echo message="classpath.....${test.classpath}" />
+		<echo message="compiling ......." />
+		<javac includeantruntime="false"
+			debug="true"
+			destdir="${test.dest}"
+			srcdir="${test.src}"
+			target="1.5"
+			classpath="${test.classpath}">
+		</javac>
+	</target>
+
+    <target name="run" >
+    	<delete includeemptydirs="true" quiet="true">
+    		<fileset dir="${test.reportsDir}" includes="**/*" />
+    	</delete>
+    	<mkdir dir="${test.reportsDir}" />
+    	<java jar="${ws.jars}" fork="true" spawn="true" />
+    	<junit fork="yes" haltonfailure="no" printsummary="yes">
+    		<classpath refid="testcase.path" />
+    		
+    		<batchtest todir="${test.reportsDir}" fork="true" >
+    			<fileset dir="${test.dest}">
+    			        <include name="com/testing/GoogleTest.class" />
+    					<include name="com/testing/YahooTest.class" />
+    			</fileset>
+    		</batchtest>
+    		
+    		<formatter type="xml" />
+    		<classpath refid="testcase.path" />
+    	
+    	</junit>
+    	<junitreport todir="${test.reportsDir}">
+    		<fileset dir="${test.reportsDir}">
+    			<include name="TEST-*.xml" />
+    		</fileset>
+    		<report todir="${test.reportsDir}" />
+    	</junitreport>
+    	
+    
+    </target>
+	
+	
+
+</project>
